@@ -25,7 +25,7 @@ engine.execute(
         """CREATE TABLE books
                 (
                     id SERIAL PRIMARY KEY,
-                    isbn INT NOT NULL,
+                    isbn VARCHAR NOT NULL,
                     title VARCHAR NOT NULL,
                     author VARCHAR NOT NULL,
                     pyear INT NOT NULL
@@ -37,9 +37,9 @@ engine.execute(
                 (
                     uid INT PRIMARY KEY,
                     comment VARCHAR,
-                    isbn INT,
+                    bid INT,
                     FOREIGN KEY(uid) REFERENCES users(id) ON DELETE CASCADE,
-                    FOREIGN KEY(isbn) REFERENCES books(isbn) ON DELETE CASCADE
+                    FOREIGN KEY(bid) REFERENCES books(id) ON DELETE CASCADE
                 )"""
             )
 
