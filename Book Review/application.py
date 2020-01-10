@@ -3,7 +3,7 @@
 
 import os
 
-from flask import Flask, session, render_template,request
+from flask import Flask, session, render_template,request,redirect,url_for
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -26,11 +26,33 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route("/")
 def home():
+    if session:
+        redirect(url_for('user'))
     return render_template("home.html")
 
-@app.route("/login", methods=["POST"])
-def login():
-    return "You are successfully loged in"
+@app.route("/user", methods=["POST","GET"])
+def user():
+    if request.method == "GET":
+        if session:
+            dash = db.execute("SELECT uname FROM users WHERE id = :id",{"id":session["u_id"]}).fetchall()
+            return render_template("user.html",uname = dash[0].uname)
+        message = "please Login first"
+        return render_template("message.html",message=message)
+    elif request.method == "POST":
+        uname = request.form.get("uname")
+        password = request.form.get("psw")
+        dash = db.execute("SELECT * FROM users WHERE uname = :uname AND password = :password",{"uname":uname,"password":password}).fetchall()
+        if dash:
+            u_id = dash[0].id
+            session["u_id"] = u_id
+            return render_template("user.html",uname=dash[0].uname)
+        message = "Wrong username or Password"
+        return render_template("message.html",message=message)
+
+@app.route("/logout")
+def logout():
+    session.pop("u_id",None)
+    return redirect(url_for('home'))
 
 @app.route("/registeration")
 def registration():
