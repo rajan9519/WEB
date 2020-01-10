@@ -27,7 +27,7 @@ db = scoped_session(sessionmaker(bind=engine))
 @app.route("/")
 def home():
     if session:
-        redirect(url_for('user'))
+        return redirect(url_for('user'))
     return render_template("home.html")
 
 @app.route("/user", methods=["POST","GET"])
