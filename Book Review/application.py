@@ -32,6 +32,21 @@ def home():
 def login():
     return "You are successfully loged in"
 
-@app.route("/register")
-def register():
+@app.route("/registeration")
+def registration():
     return render_template("register.html")
+
+@app.route("/register",methods=["POST","GET"])
+def register():
+    if request.method == "GET":
+        return "please submit registeration form"
+    uname = request.form.get("uname")
+    password = request.form.get("psw")
+    email = request.form.get("email")
+    message = uname + " already exist"
+    if db.execute("SELECT * FROM users WHERE uname = :uname",{"uname":uname}).rowcount==0:
+        db.execute("INSERT INTO users (uname,email,password) VALUES(:uname,:email,:password)",
+                    {"uname":uname,"email":email,"password":password})
+        db.commit()
+        message = uname + " Successfully Registered"
+    return render_template("message.html",message=message)
