@@ -6,6 +6,12 @@
   </head>
   <body>
     <h1>Welcome {{uname}}</h1>
+    <form class="search" action="{{url_for("search")}}" method="post">
+      <input type="text" name="isbn" placeholder="Enter ISBN" >
+      <input type="text" name="title" placeholder="Enter Title">
+      <input type="text" name="author" placeholder="Enter Author">
+      <button type="submit">Search</button>
+    </form>
     <a href="{{url_for('logout')}}">logout</a>
   </body>
 </html>

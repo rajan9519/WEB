@@ -72,3 +72,26 @@ def register():
         db.commit()
         message = uname + " Successfully Registered"
     return render_template("message.html",message=message)
+
+@app.route("/search",methods=["POST"])
+def search():
+    isbn = request.form.get("isbn")
+    title = request.form.get("title")
+    author = request.form.get("author")
+
+    isbn = isbn.strip()
+    title = title.strip()
+    author = author.strip()
+
+    isbn = "%"+isbn+"%"
+    title = "%"+title+"%"
+    author = "%"+author+"%"
+
+    isbn.lower()
+    title.lower()
+    author.lower()
+    book_list = db.execute("SELECT * FROM books WHERE LOWER(isbn) LIKE :isbn AND LOWER(title) LIKE :title AND LOWER(author) LIKE :author",
+    {"isbn":isbn,"title":title,"author":author}).fetchall()
+    if book_list:
+        return render_template("result.html",books=book_list)
+    return "Search result not found"

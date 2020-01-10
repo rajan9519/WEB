@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta >
+    <title>Book Review</title>
+  </head>
+  <body>
+    <h1>Result For you Search</h1>
+    <ol>
+      {% for book in books %}
+      <li>{{book.title}} by {{book.author}}</li>
+      {% endfor %}
+    </ol>
+  </body>
+</html>
