@@ -95,3 +95,25 @@ def search():
     if book_list:
         return render_template("result.html",books=book_list)
     return "Search result not found"
+@app.route("/book/<string:title>/<string:isbn>",methods=["POST","GET"])
+def book(title,isbn):
+    if session:
+        book = db.execute("SELECT * FROM books WHERE isbn = :isbn",{"isbn":isbn}).fetchall()
+        reviews = db.execute("""SELECT x.comment, users.uname FROM (SELECT * FROM reviews WHERE reviews.bid = :bid)
+        as x
+        INNER JOIN users ON x.uid = users.id""",{"bid":book[0].id}).fetchall()
+        check = db.execute("SELECT * FROM users WHERE :uid IN (SELECT uid FROM reviews WHERE reviews.bid = :bid)",{"bid":book[0].id,"uid":session["u_id"]}).fetchall()
+        given = False
+        if check:
+            given = True
+        if request.method == "POST":
+            bid = book[0].id
+            uid = session["u_id"]
+            comment = request.form.get("comments")
+            db.execute("INSERT INTO reviews (uid,bid,comment) VALUES (:uid,:bid,:comment)",
+                    {"uid":uid,"bid":bid,"comment":comment})
+            db.commit()
+            return redirect(url_for('book',title=title,isbn=isbn))
+        return render_template("book.html",book=book[0],reviews=reviews,given=given)
+    else:
+        return "please login first"

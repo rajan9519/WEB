@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta >
+    <title>Book Review</title>
+  </head>
+  <body>
+    <h1>{{book.title}}</h1>
+    <h2>Author: {{book.author}} </h2>
+    <h2>Published: {{book.pyear}}</h2>
+    <h2>ISBN: {{book.isbn}}</h2>
+    {% if not given %}
+    <form action="{{url_for('book',title=book.title,isbn=book.isbn)}}" method="post">
+      <textarea name="comments" rows="8" cols="80" placeholder="Enter your review here"></textarea>
+      <button type="submit" name="button">Submit</button>
+    </form>
+    {% endif %}
+    <ul>
+      {% for review in reviews %}
+      <li>{{review.comment}}</li>
+      <p>{{review.uname}}</p>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
