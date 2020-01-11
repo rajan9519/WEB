@@ -1,5 +1,3 @@
-#set DATABASE_URL=postgres://xfiaqmwbuvpdjf:d03035de4ccfd64fffa4dfe025035f2b9cb476f24b11e2a5a7ac6445684a61a5@ec2-107-22-234-204.compute-1.amazonaws.com:5432/dbdsifjtu2f55m
-
 
 import os
 
@@ -7,6 +5,7 @@ from flask import Flask, session, render_template,request,redirect,url_for
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+import requests
 
 app = Flask(__name__)
 
@@ -104,16 +103,25 @@ def book(title,isbn):
         INNER JOIN users ON x.uid = users.id""",{"bid":book[0].id}).fetchall()
         check = db.execute("SELECT * FROM users WHERE :uid IN (SELECT uid FROM reviews WHERE reviews.bid = :bid)",{"bid":book[0].id,"uid":session["u_id"]}).fetchall()
         given = False
+        isbn = isbn.strip()
+        res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "KEY", "isbns":str(isbn)})
+        avg_rat = 0
+        rat_cnt = 0
+        if res.status_code == 200:
+            res = res.json()
+            avg_rat = res["books"][0]["average_rating"]
+            rat_cnt = res["books"][0]["work_ratings_count"]
         if check:
             given = True
         if request.method == "POST":
             bid = book[0].id
             uid = session["u_id"]
             comment = request.form.get("comments")
-            db.execute("INSERT INTO reviews (uid,bid,comment) VALUES (:uid,:bid,:comment)",
-                    {"uid":uid,"bid":bid,"comment":comment})
+            rating = int(request.form.get("rate"))
+            db.execute("INSERT INTO reviews (uid,bid,comment,rating) VALUES (:uid,:bid,:comment,:rating)",
+                    {"uid":uid,"bid":bid,"comment":comment,"rating":rating})
             db.commit()
             return redirect(url_for('book',title=title,isbn=isbn))
-        return render_template("book.html",book=book[0],reviews=reviews,given=given)
+        return render_template("book.html",book=book[0],reviews=reviews,given=given,avg=avg_rat,cnt=rat_cnt)
     else:
         return "please login first"

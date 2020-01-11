@@ -39,6 +39,7 @@ engine.execute(
                     uid INT,
                     comment VARCHAR,
                     bid INT,
+                    rating INT CKECK(rating >=1 AND rating <= 5)
                     FOREIGN KEY(uid) REFERENCES users(id) ON DELETE CASCADE,
                     FOREIGN KEY(bid) REFERENCES books(id) ON DELETE CASCADE
                 )"""
