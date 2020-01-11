@@ -35,7 +35,8 @@ engine.execute(
 engine.execute(
         """CREATE TABLE reviews
                 (
-                    uid INT PRIMARY KEY,
+                    rid SERIAL PRIMARY KEY,
+                    uid INT,
                     comment VARCHAR,
                     bid INT,
                     FOREIGN KEY(uid) REFERENCES users(id) ON DELETE CASCADE,
