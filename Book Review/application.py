@@ -1,11 +1,13 @@
 
 import os
 
-from flask import Flask, session, render_template,request,redirect,url_for
+from flask import Flask, session, render_template,request,redirect,url_for,jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import requests
+
+key = os.environ["key"]
 
 app = Flask(__name__)
 
@@ -104,7 +106,7 @@ def book(title,isbn):
         check = db.execute("SELECT * FROM users WHERE :uid IN (SELECT uid FROM reviews WHERE reviews.bid = :bid)",{"bid":book[0].id,"uid":session["u_id"]}).fetchall()
         given = False
         isbn = isbn.strip()
-        res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "KEY", "isbns":str(isbn)})
+        res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key":key, "isbns":str(isbn)})
         avg_rat = 0
         rat_cnt = 0
         if res.status_code == 200:
@@ -125,3 +127,26 @@ def book(title,isbn):
         return render_template("book.html",book=book[0],reviews=reviews,given=given,avg=avg_rat,cnt=rat_cnt)
     else:
         return "please login first"
+
+@app.route("/api/<string:isbn>")
+def api(isbn):
+    data = db.execute("SELECT * FROM books WHERE books.isbn = :isbn",{"isbn":isbn}).fetchall()
+    if data:
+        res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key":key, "isbns":isbn})
+        avg_rat = 0
+        rat_cnt = 0
+        if res.status_code == 200:
+            res = res.json()
+            avg_rat = res["books"][0]["average_rating"]
+            rat_cnt = res["books"][0]["work_ratings_count"]
+        return jsonify(
+                    {
+                        "title": data[0]["title"],
+                        "author": data[0]["author"],
+                        "year": data[0]["pyear"],
+                        "isbn": data[0]["isbn"],
+                        "review_count": rat_cnt,
+                        "average_score": avg_rat
+                    }
+                        )
+    return jsonify({"error":"Either isbn does not exits or we dont have that data"}),404
